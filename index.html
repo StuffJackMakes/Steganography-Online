@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<!-- See https://github.com/StuffJackMakes/Steganography-Online for implementation details -->
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="Hide messages in images">
+        <meta name="keywords" content="steganography, hide, hidden, message, image">
+        <meta name=author content="Jack Sivak">
+        <meta name=viewport content="width=device-width">
+        <title>Steganography Online</title>
+        <link rel="icon" type="image/png" href="favicon.png">
+        <style>
+            html {
+                background-color: #bbb;
+                color: #000;
+                line-height: 1.4;
+                font-family: sans-serif;
+            }
+
+            body {
+                margin: 0;
+            }
+
+            main {
+                max-width: 50em;
+                padding: 2em;
+                background-color: #fff;
+                margin: 0 auto;
+                text-align: center;
+            }
+
+            img {
+                max-height: 128px;
+                min-height:32px;
+                min-width: 32px;
+                border: 1px solid #000;
+            }
+
+            section {
+                padding: 4px;
+                border-top: 2px solid #000;
+                border-bottom: 2px solid #000;
+                border-left: 5px solid #000;
+                border-top-left-radius: 8px;
+                border-bottom-left-radius: 40px;
+                margin-bottom: 10px;
+            }
+
+            .flex-left {
+                display: flex;
+                align-items: center;
+            }
+
+            .flex-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            h2 {
+                height: 100%;
+                border: 3px solid #000;
+                border-radius: 100%;
+                display: inline-block;
+                padding: 4px 10px 0px 10px;
+                margin: 0px 10px 0px 0px;
+            }
+
+            h3 {
+                display: inline-block;
+            }
+
+            textarea {
+                display: block;
+                box-sizing: border-box;
+                font-size: 15px;
+                margin-bottom: 1em;
+                padding: 0.5em;
+                border-radius: 10px;
+                height: 5em;
+                width: 100%;
+                min-height: 7em;
+            }
+
+            button {
+                background-color: #92f071;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 0.25em;
+                padding: 0.25em;
+                border-radius: 0.5em;
+                cursor: pointer;
+            }
+
+            button:disabled {
+                background-color: #ddd;
+                color: #888;
+                cursor: not-allowed;
+            }
+
+            input[type="text"] {
+                padding: 4px;
+                border-radius: 4px;
+                margin: 10px 0px;
+            }
+
+            input[type="file"] {
+                font-size: 14px;
+                margin: 10px 0px;
+            }
+
+            a {
+                font-weight: bolder;
+                color: #000;
+                text-decoration: none;
+            }
+
+            a:hover {
+                color: #0270c9;
+            }
+
+            #imageDrop {
+                width: 100%;
+                border: 2px dashed #aaa;
+                border-radius: 10px;
+                height: 100px;
+                font-size: 18px;
+                color: #aaa;
+                text-align: center;
+                display: inline-block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #imageDrop.active {
+                border: 2px solid #000;
+                color: #fff;
+            }
+
+            footer {
+                max-width: 50em;
+                padding: 1em;
+                background-color: #bbb;
+                margin: 0 auto;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <img src="steganography_online_logo.png" alt="Steganography Online" title="Steganography Online" style="border: 0px;"/>
+            <h1 style="margin-bottom: 0px;">Steganography Online</h1>
+            <div style="margin-bottom: 24px;"><i><strong>Hide text</strong> in any image</i></div>
+
+            <section>
+                <div class="flex-left"><h2>1</h2><h3>Load An Image</h3></div>
+                <div class="flex-row">
+                    <div style="width: 50%; padding: 0px 50px 0px 20px;">
+                        Drag and drop an image
+                        <div id="imageDrop">Drop image here</div>
+                    </div>
+                    <h4 style="width: 52px;">-OR-</h4>
+                    <div>
+                        Select an image from your computer
+                        <input type="file" accept="image/*" onchange="ParseImageFromFileInput(this);"/>
+                    </div>
+                </div>
+                <div class="flex-row" style="justify-content: center;">
+                    <strong style="margin-right: 10px;">
+                        <p>Input</p>
+                        <p>Image</p>
+                    </strong>
+                    <img id="inputImage" src=""/>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex-row" style="justify-content: space-evenly; align-items: start;">
+                    <div>
+                        <div class="flex-left"><h2>2a</h2><h3>Enter Text</h3></div>
+                        <textarea id="inputText" placeholder="Text to encode"></textarea>
+                        <button id="encodeButton" onclick="" disabled>🔏 Encode 🔏</button>
+                    </div>
+                    <h4>-OR-</h4>
+                    <div>
+                        <div class="flex-left"><h2>2b</h2><h3>Decode Text</h3></div>
+                        <button id="decodeButton" onclick="" disabled>🔎 Decode 🔎</button>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex-row" style="justify-content: space-evenly; align-items: start;">
+                    <div>
+                        <div class="flex-left"><h2>3a</h2><h3>Save Your image</h3></div>
+                        <img id="outputImage" src=""/>
+                        <a id="downloadLink" href="" download="encoded_image.png" style="display: block;"><button id="downloadButton" disabled>💾 Download 💾</button></a>
+                    </div>
+                    <h4>-OR-</h4>
+                    <div>
+                        <div class="flex-left"><h2>3b</h2><h3>Read The Decoded Message</h3></div>
+                        <textarea id="outputText" placeholder="Decoded text appears here"></textarea>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <footer>
+            Made by <a href="stuffjackmakes.com">Jack Sivak</a>. Check out the project on <a href="https://github.com/StuffJackMakes/Steganography-Online">Github</a>
+        </footer>
+
+        <script type="text/javascript">
+            // ===== Image Parsing Functions ===== //
+            // Reads an image from the drag and drop image selector
+            function ParseImageFromDrop(event) {
+                event.stopPropagation();
+                event.preventDefault();
+                if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+                    LoadImage(event.dataTransfer.files[0]);
+                }
+            }
+
+            // Reads an image from an HTML input element
+            function ParseImageFromFileInput(input) {
+                if (input.files && input.files[0]) {
+                    LoadImage(input.files[0]);
+                }
+            }
+
+            // Loads an image from the given URL, so that it can be decoded or encoded
+            function LoadImage(imageData) {
+                let fileReader = new FileReader();
+                fileReader.onload = function (e) {
+                    ImageLoaded(e.target.result);
+                };
+                fileReader.readAsDataURL(imageData);
+            }
+
+            function ImageLoaded(imageSrc) {
+                // Display the loaded image, clear existing output, and enable encoding/decoding
+                document.getElementById("inputImage").setAttribute("src", imageSrc);
+                document.getElementById("encodeButton").disabled = false;
+                document.getElementById("decodeButton").disabled = false;
+                document.getElementById("outputImage").setAttribute("src", "");
+                document.getElementById("outputText").value = "";
+            }
+
+
+            // ===== Encoding and Decoding ===== //
+            // Converts a string to a byte array of base 64 characters
+            function StringToByteArray(string) {
+                let safeBase64String = btoa(unescape(encodeURIComponent(string)));
+                let byteArray = [];
+                for (let i = 0; i < safeBase64String.length; i++) {
+                    byteArray.push(safeBase64String.charCodeAt(i));
+                }
+                return byteArray;
+            }
+
+            // Converts a byte array of base 64 characters to a string
+            function ByteArrayToString(byteArray) {
+                let string = "";
+                for (let i = 0; i < byteArray.length; i++) {
+                    string += String.fromCharCode(byteArray[i]);
+                }
+                return decodeURIComponent(escape(atob(string)));
+            }
+
+            // Encodes a string into an image
+            function Encode(message, image) {
+                // Convert the message into an encodeable format
+                let messageBytes = StringToByteArray(message);
+
+                // Add two dummy non-base64 characters at the end to define where the message ends
+                messageBytes.push(0);
+                messageBytes.push(0);
+
+                // Create and canvas to work on and draw the existing image in it
+                let canvas = document.createElement("canvas");
+                let ctx = canvas.getContext('2d');
+                canvas.width = image.naturalWidth;
+                canvas.height = image.naturalHeight;
+                ctx.drawImage(image, 0, 0);
+
+                // Get all of the pixel data, because alpha values may make some pixel unsuitible for encoding
+                let pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+
+                // Only work on pixels with this alpha value or greater (see note below)
+                let alphaConvertLimit = 250;
+                
+                // Loop through the image pixels and insert the message data into them
+                let pixelIndex = 0;
+                let pixel;
+                let byteIndex = 0;
+                let bitIndex = 0;
+                while ((pixelIndex * 4) < pixelData.data.length && byteIndex < messageBytes.length) {
+                    // If the alpha channel of the pixel is above the limit, convert it to the maximum and use it.
+                    // The reason for this is that the lower the alpha value, the more the RGB data is truncated.
+                    // For example, if the alpha value is 50, setting red to be 150 might result in it being 170.
+                    // This is done automatically to decrease file size.
+                    if (pixelData.data[(pixelIndex * 4) + 3] >= alphaConvertLimit) {
+                        // Set the alpha channel to 255
+                        pixelData.data[(pixelIndex * 4) + 3] = 0xff;
+
+                        // Set the red, green, and blue channels
+                        for (let j = 0; j < 3; j++) {
+                            let old = pixelData.data[(pixelIndex * 4) + j];
+                            if (messageBytes[byteIndex] & (1 << bitIndex)) {
+                                pixelData.data[(pixelIndex * 4) + j] |= 0b00000001;
+                            } else {
+                                pixelData.data[(pixelIndex * 4) + j] &= 0b11111110;
+                            }
+
+                            bitIndex++;
+                            if (bitIndex == 8) {
+                                byteIndex++;
+                                bitIndex = 0;
+                            }
+                        }
+                    }
+
+                    pixelIndex++;
+                }
+
+                // Put the modified data back into the image
+                ctx.putImageData(pixelData, 0, 0);
+
+                return {
+                    dataURL: canvas.toDataURL(),
+                    messageTruncated: (byteIndex < messageBytes.length)
+                };
+
+            }
+
+            // Decodes a string hidden in an image (if there is one)
+            function Decode(image) {
+                // Create and canvas to work on and draw the existing image in it
+                let canvas = document.createElement("canvas");
+                let ctx = canvas.getContext('2d');
+                canvas.width = image.naturalWidth;
+                canvas.height = image.naturalHeight;
+                ctx.drawImage(image, 0, 0);
+
+                // Get the pixel data for the relevant parts of the image
+                let pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Any non-base 64 charcters found are not part of the message
+                let base64Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+                
+                // Only decode pixels at or above this alpha value (see note in Encode() function)
+                let alphaConvertLimit = 250;
+
+                // Loop through the message bytes and insert the into the image
+                let byteIndex = 0;
+                let bitIndex = 0;
+                let currentCharacter = 0;
+                let decodedCharacters = [];
+                for (let i = 0; i < pixelData.data.length; i += 4) {
+                    // If any non-base 64 characters are encountered, the message is complete
+                    if (decodedCharacters.length > 0 &&
+                        base64Characters.indexOf(String.fromCharCode(decodedCharacters[decodedCharacters.length - 1])) === -1) {
+                        
+                        decodedCharacters = decodedCharacters.slice(0, decodedCharacters.length - 1);
+                        break;
+                    }
+
+                    // As with encoding, only read pixels with sufficient alpha value
+                    if (pixelData.data[i + 3] >= alphaConvertLimit) {
+                        // Read the red, green, and blue channels
+                        for (let j = 0; j < 3; j++) {
+                            if (pixelData.data[i + j] & 1) {
+                                currentCharacter |= (1 << bitIndex);
+                            }
+
+                            bitIndex++;
+                            if (bitIndex == 8) {
+                                byteIndex++;
+                                bitIndex = 0;
+
+                                decodedCharacters.push(currentCharacter);
+                                currentCharacter = 0;
+                            }
+                        }
+                    }
+                }
+
+                return ByteArrayToString(decodedCharacters);
+            }
+
+
+            // ===== Setup User Interaction =====//
+            // Enable drag+drop as well as encode and decode buttons
+            function Setup() {
+                let imageDropElement = document.getElementById("imageDrop");
+
+                // Change the image drop style when being dragged over
+                imageDropElement.ondragover = (event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    document.getElementById("imageDrop").classList.add("active");
+                }
+                imageDropElement.ondragleave = (event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    document.getElementById("imageDrop").classList.remove("active");
+                }
+
+                // When an image is dropped, load it
+                imageDropElement.ondrop = (event) => {
+                    document.getElementById("imageDrop").classList.remove("active");
+                    ParseImageFromDrop(event);
+                }
+
+                // Setup encode and decode buttons
+                document.getElementById("encodeButton").onclick = () => {
+                    let result = Encode(document.getElementById("inputText").value, document.getElementById("inputImage"));
+                    document.getElementById("outputImage").setAttribute("src", result.dataURL);
+                    document.getElementById("downloadLink").href = result.dataURL;
+                    document.getElementById("downloadButton").disabled = false;
+
+                    if (result.messageTruncated) {
+                        alert("Message was too large for the image provided and has been truncated");
+                    }
+                }
+                document.getElementById("decodeButton").onclick = () => {
+                    let result = Decode(document.getElementById("inputImage"));
+                    document.getElementById("outputText").value = result ? result : "No message found in this image :(";
+                }
+            }
+
+            window.onload = Setup;
+        </script>
+    </body>
+</html>
