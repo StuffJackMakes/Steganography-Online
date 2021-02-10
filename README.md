@@ -1,5 +1,5 @@
 <p align="center">
-  <img height="128" src="./steganography_online_logo.png">
+  <img height="128" src="./public/steganography_online_logo.png">
 </p>
 
 # Steganography Online
@@ -15,7 +15,7 @@ This repository contains a website that allows users to upload an image, enter t
 
 ## Live Example
 
-A live example of this website is hosted at [https://stuffjackmakes.com/steg/](https://stuffjackmakes.com/steg/).
+A live example of this website is hosted at [https://stuffjackmakes.com/steganography-online](https://stuffjackmakes.com/steganography-online).
 
 
 ## How it Works
